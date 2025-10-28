@@ -12,6 +12,7 @@
     "vite": "^7.1.7"
   },
   "dependencies": {
+    "d3-scale-chromatic": "^3.1.0",
     "three": "^0.180.0"
   }
 }
