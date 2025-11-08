@@ -95,5 +95,7 @@ export function applyColorMode(geometry, colorBy = "rgb", colormap = "Category10
         geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     }
 
+    // TODO: Add custom color from gui
+
     geometry.attributes.color.needsUpdate = true;
 }
