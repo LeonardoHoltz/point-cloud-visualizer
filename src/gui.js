@@ -99,15 +99,12 @@ export function initGUI(main_cloud, offset_cloud, options) {
 
     // --- Section: Clustering Mode ---
     offsetFolder.add(options, 'clustering_mode').name('Clustering mode').onChange((value) => {
-        offset_cloud.prepare_clustering(value, options.label_select);
+        offset_cloud.prepareClustering(value, options.label_select);
         render();
     });
     offsetFolder.add(options, 'label_select', [0, 1, 2, 3, 4, 5]).name('Select label');
-    offsetFolder.add(options, 'algorithm', ['DBSCAN']).name('Clustering Algorithm');
-
-    // Clustering mode
-    //clustering_mode: false,
-    //label_select: 1
+    offsetFolder.add(options, 'algorithm', ['DBSCAN', 'KNN']).name('Clustering Algorithm');
+    offsetFolder.add(options, 'apply_clustering').name('Apply Clustering');
 
 
     return gui;

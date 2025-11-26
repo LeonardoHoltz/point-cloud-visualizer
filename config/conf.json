@@ -1,4 +1,14 @@
 {
-    "main_pc": "../data/placeholder.pcd",
-    "centroid_pc": "../data/placeholder_centroids_pred.pcd"
+    "input": {
+        "main_pc": "../data/placeholder.pcd",
+        "centroid_pc": "../data/placeholder_centroids_pred.pcd"
+    },
+    "legend": [
+        "name1",
+        "name2",
+        "name3",
+        "name4",
+        "name5",
+        "name6"
+    ]
 }
