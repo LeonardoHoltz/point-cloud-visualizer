@@ -1,6 +1,6 @@
 // GUI
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-import '../styles/gui.css';
+import 'styles/gui.css';
 
 const gui_params = {
 	show_pc_orig: true,

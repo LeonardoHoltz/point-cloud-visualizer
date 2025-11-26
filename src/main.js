@@ -2,6 +2,8 @@ import { scene, render, initRenderingContext } from "./rendering.js"
 import { loadPCD, loadPCDOffset } from "./loadPCD.js";
 import { initGUI } from "./gui.js"
 
+import configData from '../config/conf.json' assert { type: 'json' };
+
 const options = {
     // Main Point Cloud options
     show_main_pc: true,
@@ -14,7 +16,7 @@ const options = {
     offset_pred_slider: 1,
 
     // Other options
-    labelsVisibility: {}
+    hide_labels: false,
 };
 
 let main_cloud, offset_cloud;
@@ -23,8 +25,11 @@ async function init() {
 
     initRenderingContext();
 
-    main_cloud = await loadPCD("../data/main_cloud.pcd", options);
-    offset_cloud = await loadPCDOffset("../data/offset_cloud.pcd", main_cloud.geometry.getAttribute("position"), options);
+    console.log("Load main Point Cloud:", configData.main_pc);
+    console.log("Load centroid Point Cloud:", configData.centroid_pc);
+
+    main_cloud = await loadPCD(configData.main_pc, options);
+    offset_cloud = await loadPCDOffset(configData.centroid_pc, main_cloud.geometry.getAttribute("position"), options);
     scene.add(main_cloud);
     scene.add(offset_cloud);
 

@@ -74,9 +74,10 @@ export function applyColorMode(geometry, colorBy = "rgb", colormap = "Category10
 
     // → Confidences (continous)
     else if (colorBy === "confidences" && raw.confidences?.length) {
+        //const minI = raw.confidences.reduce((min, cur) => Math.min(min, cur), Infinity);
+        const minI = 0.0
+        const maxI = raw.confidences.reduce((acc, cur) => Math.max(acc, cur), -Infinity);
         const cmap = continuousSchemes[colormap] || d3.interpolateViridis;
-        const minI = Math.min(...raw.confidences);
-        const maxI = Math.max(...raw.confidences);
 
         for (const intensity of raw.confidences) {
             const norm = (intensity - minI) / (maxI - minI + 1e-8);

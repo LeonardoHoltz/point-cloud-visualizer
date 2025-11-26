@@ -1,7 +1,7 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-import { render } from "./rendering.js"
+import { render } from "./rendering.js";
 
-import '../styles/gui.css';
+import './styles/gui.css';
 
 /**
  * Inicializa a GUI para um cloud e opções fornecidas
@@ -47,7 +47,7 @@ export function initGUI(main_cloud, offset_cloud, options) {
     visFolder.add(options, 'pointSize', 0.001, 0.05, 0.001)
         .name('Point Size')
         .onChange(() => {
-            main_cloud.material.size = options.pointSize;
+            main_cloud.changeSize(options.pointSize);
             render();
         });
     
@@ -61,29 +61,41 @@ export function initGUI(main_cloud, offset_cloud, options) {
         render();
     });
 
+    // How the Point Cloud should be colored
+    offsetFolder.add(options, 'colorBy', ['rgb', 'semantic_gt', 'semantic_pred', 'confidences'])
+        .name('Color by')
+        .onChange(() => {
+            offset_cloud.recolor(options.colorBy, options.colormap);
+            render();
+        });
+    
+    // When not using rgb, which type of colormap to use
+    offsetFolder.add(options, 'colormap', ['Category10', 'Set3', 'Paired', 'viridis', 'plasma'])
+        .name('Colormap')
+        .onChange(() => {
+            offset_cloud.recolor(options.colorBy, options.colormap);
+            render();
+        });
+
+    // Size of the points
+    offsetFolder.add(options, 'pointSize', 0.001, 0.05, 0.001)
+        .name('Point Size')
+        .onChange(() => {
+            offset_cloud.changeSize(options.pointSize);
+            render();
+        });
+
     // Slider to check offset progression compared with main PC
     offsetFolder.add(options, 'offset_pred_slider', 0, 1).name('Offset progression').onChange((value) => {
         offset_cloud.applyOffset(value);
         render();
     });
 
-
-    // ------------------------------------------------------------------------
-    // --- Section: Labels visibility ---
-    if (main_cloud.geometry.userData.labelToColor) {
-        const labelsFolder = gui.addFolder('Labels');
-        labelsFolder.open();
-        const labels = [...main_cloud.geometry.userData.labelToColor.keys()];
-        labels.forEach(label => {
-            options.labelsVisibility[label] = true;
-            labelsFolder.add(options.labelsVisibility, label.toString())
-                .name(`Label ${label}`)
-                .onChange(() => {
-                    main_cloud.updateLabelVisibility(options.labelsVisibility);
-                    render();
-                });
-        });
-    }
+    // Unimportant Labels visibility
+    offsetFolder.add(options, 'hide_labels').name('Hide uninstantiable labels').onChange((value) => {
+        offset_cloud.updateLabelVisibility(value);
+        render();
+    });
 
     return gui;
 }

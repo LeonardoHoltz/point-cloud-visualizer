@@ -1,0 +1,4 @@
+{
+    "main_pc": "../data/placeholder.pcd",
+    "centroid_pc": "../data/placeholder_centroids_pred.pcd"
+}

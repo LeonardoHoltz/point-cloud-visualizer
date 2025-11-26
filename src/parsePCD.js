@@ -2,11 +2,13 @@ import * as THREE from "three";
 
 const fields_translation = {
 	"confidences": "semantic_pred_confs",
-	"semantic_gt": "semantic_gt",
-	"semantic_pred": "instance_pred_label",
+	"semantic_gt": "label",
+	"semantic_pred": "semantic_preds",
 	"instance_gt": "instance_labels",
 	"instance_pred": "instance_pred"
 }
+
+const labelsToHide = [0.0, 5.0];
 
 /**
  * Faz o parse de um arquivo PCD ASCII.
@@ -24,6 +26,7 @@ export async function parsePCD(url) {
 
 	const fields = header.find(l => l.startsWith("FIELDS")).split(" ").slice(1);
 	const fieldIndices = Object.fromEntries(fields.map((f, i) => [f, i]));
+	console.log("Detected fields:", fieldIndices);
 
 	const geometry = new THREE.BufferGeometry();
 	const positions = [];
@@ -34,7 +37,8 @@ export async function parsePCD(url) {
 	const instance_pred = [];
 	const instance_gt = [];
 	const rgbs = [];
-
+	const labelsToHideVisibility = [];
+	let x = 1;
 	for (const line of dataLines) {
 		const v = line.trim().split(/\s+/).map(Number);
 
@@ -42,28 +46,39 @@ export async function parsePCD(url) {
 		positions.push(v[fieldIndices.x], v[fieldIndices.y], v[fieldIndices.z]);
 
 		// Normals
-		if ("normal_x" in fieldIndices)
+		if ("normal_x" in fieldIndices) {
 			normals.push(v[fieldIndices.normal_x], v[fieldIndices.normal_y], v[fieldIndices.normal_z]);
+		}
 
 		// Confidences
-		if (fields_translation["confideces"] in fieldIndices)
-			confidences.push(v[fieldIndices.confidences]);
+		{
+			const f = fields_translation["confidences"];
+			if (f in fieldIndices) confidences.push(v[fieldIndices[f]]);
+		}
 
 		// Semantic GT
-		if (fields_translation["semantic_gt"] in fieldIndices)
-			semantic_gt.push(v[fieldIndices.semantic_gt]);
+		{
+			const f = fields_translation["semantic_gt"];
+			if (f in fieldIndices) semantic_gt.push(v[fieldIndices[f]]);
+		}
 
 		// Semantic Predictions
-		if (fields_translation["semantic_pred"] in fieldIndices)
-			semantic_pred.push(v[fieldIndices.semantic_pred]);
+		{
+			const f = fields_translation["semantic_pred"];
+			if (f in fieldIndices) semantic_pred.push(v[fieldIndices[f]]);
+		}
 
 		// Instance GT
-		if (fields_translation["instance_gt"] in fieldIndices)
-			instance_gt.push(v[fieldIndices.instance_gt]);
+		{
+			const f = fields_translation["instance_gt"];
+			if (f in fieldIndices) instance_gt.push(v[fieldIndices[f]]);
+		}
 
 		// Instance Predictions
-		if (fields_translation["instance_pred"] in fieldIndices)
-			instance_pred.push(v[fieldIndices.instance_pred]);
+		{
+			const f = fields_translation["instance_pred"];
+			if (f in fieldIndices) instance_pred.push(v[fieldIndices[f]]);
+		}
 
 		// RGB coded as uint32
 		if ("rgb" in fieldIndices) {
@@ -72,6 +87,17 @@ export async function parsePCD(url) {
 			const g = (rgbUint >> 8) & 0xff;
 			const b = rgbUint & 0xff;
 			rgbs.push(r / 255, g / 255, b / 255);
+		}
+	}
+
+	// Visibility attribute to hide specific points
+	if (semantic_pred.length) {
+		for (let i = 0; i < semantic_pred.length; i++) {
+			if (labelsToHide.includes(semantic_pred[i])) {
+				labelsToHideVisibility.push(0);
+			}
+			else
+				labelsToHideVisibility.push(1);
 		}
 	}
 
@@ -84,6 +110,10 @@ export async function parsePCD(url) {
 	if (semantic_pred.length) geometry.setAttribute("semantic_pred", new THREE.Float32BufferAttribute(semantic_pred, 1));
 	if (instance_gt.length) geometry.setAttribute("instance_gt", new THREE.Float32BufferAttribute(instance_gt, 1));
 	if (instance_pred.length) geometry.setAttribute("instance_pred", new THREE.Float32BufferAttribute(instance_pred, 1));
+	if (labelsToHideVisibility.length) geometry.setAttribute("labels_to_hide_visibility", new THREE.Float32BufferAttribute(labelsToHideVisibility, 1));
+
+	// Initial visibility of all points is visible (1)
+	geometry.setAttribute("visibility", new THREE.Float32BufferAttribute(new Array(positions.length / 3).fill(1), 1));
 
 	// guardamos arrays crus pra futuros recálculos de cor
 	geometry.userData.raw = {
