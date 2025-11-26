@@ -44,7 +44,7 @@ export function initGUI(main_cloud, offset_cloud, options) {
         });
 
     // Size of the points
-    visFolder.add(options, 'pointSize', 0.001, 0.05, 0.001)
+    visFolder.add(options, 'pointSize', 1, 10, 0.1)
         .name('Point Size')
         .onChange(() => {
             main_cloud.changeSize(options.pointSize);
@@ -78,7 +78,7 @@ export function initGUI(main_cloud, offset_cloud, options) {
         });
 
     // Size of the points
-    offsetFolder.add(options, 'pointSize', 0.001, 0.05, 0.001)
+    offsetFolder.add(options, 'pointSize', 1, 10, 0.1)
         .name('Point Size')
         .onChange(() => {
             offset_cloud.changeSize(options.pointSize);
@@ -92,10 +92,23 @@ export function initGUI(main_cloud, offset_cloud, options) {
     });
 
     // Unimportant Labels visibility
-    offsetFolder.add(options, 'hide_labels').name('Hide uninstantiable labels').onChange((value) => {
+    offsetFolder.add(options, 'hide_labels').name('Hide non-clustered labels').onChange((value) => {
         offset_cloud.updateLabelVisibility(value);
         render();
     });
+
+    // --- Section: Clustering Mode ---
+    offsetFolder.add(options, 'clustering_mode').name('Clustering mode').onChange((value) => {
+        offset_cloud.prepare_clustering(value, options.label_select);
+        render();
+    });
+    offsetFolder.add(options, 'label_select', [0, 1, 2, 3, 4, 5]).name('Select label');
+    offsetFolder.add(options, 'algorithm', ['DBSCAN']).name('Clustering Algorithm');
+
+    // Clustering mode
+    //clustering_mode: false,
+    //label_select: 1
+
 
     return gui;
 }

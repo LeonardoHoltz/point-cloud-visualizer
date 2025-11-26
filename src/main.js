@@ -9,7 +9,7 @@ const options = {
     show_main_pc: true,
     colorBy: 'rgb',
     colormap: 'Category10',
-    pointSize: 0.01,
+    pointSize: 1,
 
     // Offset Point Cloud options
     show_offset_pc: true,
@@ -17,6 +17,11 @@ const options = {
 
     // Other options
     hide_labels: false,
+
+    // Clustering mode
+    clustering_mode: false,
+    label_select: 1,
+    algorithm: 'DBSCAN',
 };
 
 let main_cloud, offset_cloud;

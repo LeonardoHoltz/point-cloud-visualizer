@@ -8,7 +8,7 @@ const fields_translation = {
 	"instance_pred": "instance_pred"
 }
 
-const labelsToHide = [0.0, 5.0];
+const labelsToHide = [0.0, 1.0, 2.0];
 
 /**
  * Faz o parse de um arquivo PCD ASCII.

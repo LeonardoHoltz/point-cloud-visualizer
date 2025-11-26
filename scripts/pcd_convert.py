@@ -14,11 +14,11 @@ def main():
     xyz = np.vstack([cloud.pc_data['x'], cloud.pc_data['y'], cloud.pc_data['z']]).T
     center = xyz.mean(axis=0)
     xyz_centered = xyz - center
-    scale = np.max(np.linalg.norm(xyz_centered, axis=1))
-    xyz_normalized = xyz_centered / scale
-    cloud.pc_data['x'] = xyz_normalized[:, 0]
-    cloud.pc_data['y'] = xyz_normalized[:, 1]
-    cloud.pc_data['z'] = xyz_normalized[:, 2]
+    #scale = np.max(np.linalg.norm(xyz_centered, axis=1))
+    #xyz_normalized = xyz_centered / scale
+    cloud.pc_data['x'] = xyz_centered[:, 0]
+    cloud.pc_data['y'] = xyz_centered[:, 1]
+    cloud.pc_data['z'] = xyz_centered[:, 2]
     
     file = Path(args.file)
     if args.compression_type == "ascii":

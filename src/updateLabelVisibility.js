@@ -5,12 +5,12 @@ export function applySemanticVisibility(geometry, material, hide) {
     const visibility = geometry.getAttribute("visibility");
     console.log("labelsToHide", labelsToHideVisibility);
     if (hide) {
-        visibility.array = labelsToHideVisibility.array;
+        visibility.copy(labelsToHideVisibility);
     }
     else {
         const n = labelsToHideVisibility.length;
         visibility.array.fill(1);
     }
     console.log(visibility);
-    visibility.needsUpdate = true;
+    geometry.attributes.visibility.needsUpdate = true;
 }

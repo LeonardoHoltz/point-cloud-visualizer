@@ -9,5 +9,5 @@ void main() {
 	vVisibility = visibility;
 	vColor = color;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-	gl_PointSize = uSize * 100.0;
+	gl_PointSize = uSize;
 }
