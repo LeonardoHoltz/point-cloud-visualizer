@@ -50,7 +50,7 @@ export function prepareClustering(geometry, isClusteringMode, selectedLabel) {
     colors.needsUpdate = true;
 };
 
-export async function applyClustering(geometry, algorithm, selectedLabel, eps = 0.5, minPts = 10) {
+export async function applyClustering(geometry, algorithm, selectedLabel, eps = 0.01, minPts = 10) {
     // Placeholder for clustering implementation
     // This function would implement the clustering algorithm (e.g., DBSCAN)
     // and update the geometry attributes accordingly.

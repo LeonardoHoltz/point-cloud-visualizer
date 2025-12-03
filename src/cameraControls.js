@@ -7,8 +7,8 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(5, -8, 12);
-camera.lookAt(new THREE.Vector3(5, 5, 0));
+camera.position.set(0, -8, 8);
+camera.lookAt(new THREE.Vector3(0, 0, 0));
 camera.up.set(0, 0, 1);
 
 // Movement state
