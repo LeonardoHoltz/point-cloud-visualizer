@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import * as d3 from "d3-scale-chromatic";
+import configData from '../config/conf.json' assert { type: 'json' };
 
 /**
  * Atualiza o atributo 'color' da geometria com base em um campo e colormap.
@@ -54,13 +55,13 @@ export function applyColorMode(geometry, colorBy = "rgb", colormap = "Category10
     // → Label (semantic prediction)
     else if (colorBy === "semantic_pred" && raw.semantic_pred?.length) {
         const colorSet = discreteSchemes[colormap] || d3.schemeCategory10;
-        const uniqueLabels = [...new Set(raw.semantic_pred)];
+        const labels = [...Array(configData.classes.length).keys()];
         const labelToColor = new Map();
 
-        uniqueLabels.forEach((l, i) => {
+        labels.forEach((l, i) => {
             const colorStr = colorSet[i % colorSet.length];
             const c = new THREE.Color(colorStr);
-            labelToColor.set(l, c);
+            labelToColor.set(i, c);
         });
 
         for (const l of raw.semantic_pred) {

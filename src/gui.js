@@ -1,6 +1,7 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { render } from "./rendering.js";
 import configData from '../config/conf.json' assert { type: 'json' };
+import { buildLegend } from "./legend.js";
 
 import './styles/gui.css';
 
@@ -42,6 +43,7 @@ export function initGUI(pointCloud, options) {
     cloudGeneral.add(options, 'colormap', ['Category10', 'Set3', 'Paired', 'viridis', 'plasma'])
         .name('Colormap')
         .onChange(() => {
+            buildLegend(options.colormap_mapping[options.colormap]);
             pointCloud.recolor(options.colorBy, options.colormap);
             if (options.clustering_mode)
                 pointCloud.prepareClustering(true, configData.classes.indexOf(options.label_select));

@@ -1,15 +1,18 @@
-import * as d3 from "d3-scale-chromatic";
 import configData from '../config/conf.json' assert { type: 'json' };
 
-export function buildLegend() {
+export function buildLegend(color_scheme) {
     const classColors = {};
     configData.classes.forEach((item, i) => {
-        classColors[item] = d3.schemeCategory10[i % 10];
+        classColors[item] = color_scheme[i % 10];
     });
     console.log("Legend colors:", classColors);
-    console.log(d3.schemeCategory10);
+    console.log(color_scheme);
     const legend = document.getElementById("legend");
-    legend.innerHTML = "";
+    
+    // Removes everything except the title
+    while (legend.children.length > 1) {
+        legend.removeChild(legend.lastChild);
+    }
 
     for (const [label, color] of Object.entries(classColors)) {
         const item = document.createElement("div");

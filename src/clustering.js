@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { showToast } from "./toast.js";
 
 export function prepareClustering(geometry, isClusteringMode, selectedLabel) {
     // Highlight the points that will be subjected to clustering
@@ -104,6 +105,7 @@ export async function applyClustering(geometry, algorithm, selectedLabel, parame
         });
     });
     colors.needsUpdate = true;
+    showToast("Clustering finished");
 }
 
 /**

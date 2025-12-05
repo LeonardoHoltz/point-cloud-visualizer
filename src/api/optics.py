@@ -1,35 +1,44 @@
 import numpy as np
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import OPTICS
 from typing import List, Optional, Any
 from pydantic import BaseModel
 
-class DBSCANRequest(BaseModel):
+class OPTICSRequest(BaseModel):
     data: List[List[float]]
 
-    eps: float = 0.5
+    # parâmetros principais do OPTICS
     min_samples: int = 5
-    metric: str = "euclidean"
+    max_eps: float = np.inf
+    metric: str = "minkowski"
+    p: int = 2
+    cluster_method: str = "xi"    # "xi" ou "dbscan"
+    eps: Optional[float] = None   # usado apenas se cluster_method="dbscan"
+    xi: float = 0.05              # usado se cluster_method="xi"
+    min_cluster_size: Optional[float] = None
     algorithm: str = "auto"
     leaf_size: int = 30
-    p: Optional[int] = None
     n_jobs: Optional[int] = None
 
 
-def run_dbscan(req: DBSCANRequest):
+def run_optics(req: OPTICSRequest):
 
     X = np.array(req.data)
 
-    db = DBSCAN(
-        eps=req.eps,
+    optics = OPTICS(
         min_samples=req.min_samples,
+        max_eps=req.max_eps,
         metric=req.metric,
+        p=req.p,
+        xi=req.xi,
+        min_cluster_size=req.min_cluster_size,
+        cluster_method=req.cluster_method,
+        eps=req.eps,
         algorithm=req.algorithm,
         leaf_size=req.leaf_size,
-        p=req.p,
         n_jobs=req.n_jobs,
     ).fit(X)
 
-    labels = db.labels_
+    labels = optics.labels_
 
     clusters = {}
     noise = []
@@ -45,13 +54,5 @@ def run_dbscan(req: DBSCANRequest):
     return {
         "clusters": cluster_list,
         "noise": noise,
-        "params": {
-            "eps": req.eps,
-            "min_samples": req.min_samples,
-            "metric": req.metric,
-            "algorithm": req.algorithm,
-            "leaf_size": req.leaf_size,
-            "p": req.p,
-            "n_jobs": req.n_jobs
-        }
+        "params": req.dict()
     }
