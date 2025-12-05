@@ -1,11 +1,11 @@
 import { scene, render, initRenderingContext } from "./rendering.js"
-import { loadPCD, loadPCDOffset } from "./loadPCD.js";
+import { loadPCD } from "./loadPCD.js";
 import { initGUI } from "./gui.js"
 import { buildLegend } from "./legend.js";
 
 import configData from '../config/conf.json' assert { type: 'json' };
 
-let main_cloud, offset_cloud;
+let pointCloud;
 
 const options = {
     // Main Point Cloud options
@@ -15,21 +15,42 @@ const options = {
     pointSize: 1,
 
     // Offset Point Cloud options
-    show_offset_pc: true,
-    offset_pred_slider: 1,
+    show_pc: true,
+    offset_pred_slider: 0,
 
     // Other options
     hide_labels: false,
 
     // Clustering mode
     clustering_mode: false,
-    label_select: 1,
+    label_select: configData.classes[0],
     algorithm: 'DBSCAN',
     apply_clustering: async function() {
-        await offset_cloud.applyClustering(this.clustering_mode, this.algorithm, this.label_select);
-        console.log("acabou");
-        render();
+        if (this.clustering_mode) {
+            await pointCloud.applyClustering(this.algorithm, configData.classes.indexOf(this.label_select), this.algorithm_parameters);
+            console.log("finish clustering");
+            render();
+        }
+    },
+    reset_clustering: function() {
+        if (this.clustering_mode) {
+            pointCloud.prepareClustering(false, configData.classes.indexOf(this.label_select));
+            pointCloud.prepareClustering(true, configData.classes.indexOf(this.label_select));
+            render();
+        }
+    },
+    algorithm_parameters: {
+        dbscan: {
+            title: "DBSCAN parameters",
+            eps: 0.5,
+            min_pts: 10
+        },
+        ball_query: {
+            title: "Ball-Query parameters",
+            radius: 0.5
+        }
     }
+    
 };
 
 async function init() {
@@ -39,13 +60,11 @@ async function init() {
     console.log("Load main Point Cloud:", configData.input.main_pc);
     console.log("Load centroid Point Cloud:", configData.input.centroid_pc);
 
-    main_cloud = await loadPCD(configData.input.main_pc, options);
-    offset_cloud = await loadPCDOffset(configData.input.centroid_pc, main_cloud.geometry.getAttribute("position"), options);
-    scene.add(main_cloud);
-    scene.add(offset_cloud);
+    pointCloud = await loadPCD(configData.input.main_pc, options);
+    scene.add(pointCloud);
 
-    // inicializa a GUI separada
-    const gui = initGUI(main_cloud, offset_cloud, options);
+    // Interface options
+    const gui = initGUI(pointCloud, options);
 
     buildLegend();
     render();
