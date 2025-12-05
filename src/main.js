@@ -23,13 +23,34 @@ const options = {
 
     // Clustering mode
     clustering_mode: false,
-    label_select: 1,
+    label_select: configData.classes[0],
     algorithm: 'DBSCAN',
     apply_clustering: async function() {
-        await pointCloud.applyClustering(this.clustering_mode, this.algorithm, this.label_select);
-        console.log("acabou");
-        render();
+        if (this.clustering_mode) {
+            await pointCloud.applyClustering(this.algorithm, configData.classes.indexOf(this.label_select), this.algorithm_parameters);
+            console.log("finish clustering");
+            render();
+        }
+    },
+    reset_clustering: function() {
+        if (this.clustering_mode) {
+            pointCloud.prepareClustering(false, configData.classes.indexOf(this.label_select));
+            pointCloud.prepareClustering(true, configData.classes.indexOf(this.label_select));
+            render();
+        }
+    },
+    algorithm_parameters: {
+        dbscan: {
+            title: "DBSCAN parameters",
+            eps: 0.5,
+            min_pts: 10
+        },
+        ball_query: {
+            title: "Ball-Query parameters",
+            radius: 0.5
+        }
     }
+    
 };
 
 async function init() {

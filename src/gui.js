@@ -1,5 +1,6 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { render } from "./rendering.js";
+import configData from '../config/conf.json' assert { type: 'json' };
 
 import './styles/gui.css';
 
@@ -32,6 +33,8 @@ export function initGUI(pointCloud, options) {
         .name('Color by')
         .onChange(() => {
             pointCloud.recolor(options.colorBy, options.colormap);
+            if (options.clustering_mode)
+                pointCloud.prepareClustering(true, configData.classes.indexOf(options.label_select));
             render();
         });
     
@@ -40,6 +43,8 @@ export function initGUI(pointCloud, options) {
         .name('Colormap')
         .onChange(() => {
             pointCloud.recolor(options.colorBy, options.colormap);
+            if (options.clustering_mode)
+                pointCloud.prepareClustering(true, configData.classes.indexOf(options.label_select));
             render();
         });
 
@@ -58,20 +63,51 @@ export function initGUI(pointCloud, options) {
     });
 
     // Unimportant Labels visibility
-    cloudGeneral.add(options, 'hide_labels').name('Hide non-clustered labels').onChange((value) => {
+    cloudGeneral.add(options, 'hide_labels').name('Hide non-equipment objects').onChange((value) => {
         pointCloud.updateLabelVisibility(value);
         render();
     });
 
     // --- Section: Clustering Mode ---
-    cloudGeneral.add(options, 'clustering_mode').name('Clustering mode').onChange((value) => {
-        pointCloud.prepareClustering(value, options.label_select);
+    const clusteringFolder = gui.addFolder('Clustering options');
+    clusteringFolder.add(options, 'clustering_mode').name('Clustering mode').onChange((value) => {
+        pointCloud.prepareClustering(value, configData.classes.indexOf(options.label_select));
         render();
     });
-    cloudGeneral.add(options, 'label_select', [0, 1, 2, 3, 4, 5]).name('Select label');
-    cloudGeneral.add(options, 'algorithm', ['DBSCAN', 'Ball-Query']).name('Clustering Algorithm');
-    cloudGeneral.add(options, 'apply_clustering').name('Apply Clustering');
+    clusteringFolder.add(options, 'label_select', configData.classes).name('Select label').onChange((value) => {
+        options.reset_clustering();
+    });
+    const algorithm_options = ['DBSCAN', 'Ball-Query'];
+    let algorithmParameters;
+    let parametersControllers = [];
+    const algorithm = clusteringFolder.add(options, 'algorithm', algorithm_options).name('Clustering Algorithm').onChange((value) => {
+        while(parametersControllers.length > 0) {
+            const controller = parametersControllers.pop();
+            controller.destroy();
+        };
+        switch(value) {
+            case 'DBSCAN':
+                algorithmParameters.title(options.algorithm_parameters.dbscan.title);
+                parametersControllers.push(
+                    algorithmParameters.add(options.algorithm_parameters.dbscan, 'eps').name('eps (distance)')
+                );
+                parametersControllers.push(
+                    algorithmParameters.add(options.algorithm_parameters.dbscan, 'min_pts').name('Min. Points belonging to cluster')
+                );
+                break;
+            case 'Ball-Query':
+                algorithmParameters.title(options.algorithm_parameters.ball_query.title);
+                parametersControllers.push(
+                    algorithmParameters.add(options.algorithm_parameters.ball_query, 'radius').name('Radius')
+                );
+                break;
+        };
+    });
+    algorithmParameters = clusteringFolder.addFolder('placeholder');
+    algorithm.setValue(algorithm_options[0]); // Force the onchange in the first time
 
+    clusteringFolder.add(options, 'apply_clustering').name('Apply Clustering');
+    clusteringFolder.add(options, 'reset_clustering').name('Reset Clustering');
 
     return gui;
 }

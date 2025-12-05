@@ -3,7 +3,7 @@ import configData from '../config/conf.json' assert { type: 'json' };
 
 export function buildLegend() {
     const classColors = {};
-    configData.legend.forEach((item, i) => {
+    configData.classes.forEach((item, i) => {
         classColors[item] = d3.schemeCategory10[i % 10];
     });
     console.log("Legend colors:", classColors);

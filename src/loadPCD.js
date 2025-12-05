@@ -61,9 +61,8 @@ export async function loadPCD(url, options = {}) {
         prepareClustering(cloud.geometry, isClusteringMode, selectedLabel);
     };
 
-    cloud.applyClustering = async (isClusteringMode, algorithm, selectedLabel) => {
-        if (isClusteringMode)
-            await applyClustering(cloud.geometry, algorithm, selectedLabel);
+    cloud.applyClustering = async (algorithm, selectedLabel, parameters) => {
+        await applyClustering(cloud.geometry, algorithm, selectedLabel, parameters);
     };
 
     return cloud;

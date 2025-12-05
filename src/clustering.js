@@ -5,7 +5,6 @@ export function prepareClustering(geometry, isClusteringMode, selectedLabel) {
     const labels = geometry.getAttribute("semantic_pred");
     const nPoints = labels.count;
     const colors = geometry.getAttribute("color");
-    const rgb = geometry.getAttribute("rgb");
 
     // Add attribute to store colors before clustering mode
     if (isClusteringMode) {
@@ -16,15 +15,15 @@ export function prepareClustering(geometry, isClusteringMode, selectedLabel) {
 
     if (isClusteringMode) {
         for (let i = 0; i < nPoints; i++) {
-            const r = rgb.getX(i);
-            const g = rgb.getY(i);
-            const b = rgb.getZ(i);
+            const r = colors.getX(i);
+            const g = colors.getY(i);
+            const b = colors.getZ(i);
             if (labels.getX(i) === selectedLabel) {
                 // Apply a blending between the rgb color and white
                 colors.setXYZ(i,
-                    0.3 * r + 0.7 * 1.0,
-                    0.3 * g + 0.7 * 1.0,
-                    0.3 * b + 0.7 * 1.0
+                    0.2 * r + 0.8 * 1.0,
+                    0.2 * g + 0.8 * 1.0,
+                    0.2 * b + 0.8 * 1.0
                 );
             }
             else {
@@ -50,11 +49,11 @@ export function prepareClustering(geometry, isClusteringMode, selectedLabel) {
     colors.needsUpdate = true;
 };
 
-export async function applyClustering(geometry, algorithm, selectedLabel, eps = 0.01, minPts = 10) {
+export async function applyClustering(geometry, algorithm, selectedLabel, parameters) {
     // Placeholder for clustering implementation
     // This function would implement the clustering algorithm (e.g., DBSCAN)
     // and update the geometry attributes accordingly.
-    console.log(`Applying ${algorithm} clustering on label ${selectedLabel} with eps=${eps} and minPts=${minPts}`);
+    console.log(`Applying ${algorithm} clustering on label ${selectedLabel}`);
 
     // collect points belonging to the selected label
     const labels = geometry.getAttribute("semantic_pred");
@@ -68,13 +67,25 @@ export async function applyClustering(geometry, algorithm, selectedLabel, eps = 
         }
     }
 
-    const res = await runDBSCAN(pointsToCluster, {
-        eps: eps,
-        min_samples: minPts,
-        metric: "euclidean",
-    });
-    const clusters = res.clusters;
-
+    let clusters;
+    let res;
+    switch(algorithm) {
+        case 'DBSCAN':
+            res = await runDBSCAN(pointsToCluster, {
+                eps: parameters.dbscan.eps,
+                min_samples: parameters.dbscan.minPts,
+                metric: "euclidean",
+            });
+            clusters = res.clusters;
+            break;
+        case 'Ball-Query':
+            res = await runBallQuery(pointsToCluster, {
+                radius: parameters.ball_query.radius,
+            });
+            clusters = res.clusters;
+            break;
+    }
+    
     console.log(`Found ${clusters.length} clusters for label ${selectedLabel}`);
     // color the points based on cluster assignment
     const colors = geometry.getAttribute("color");
@@ -98,8 +109,8 @@ export async function applyClustering(geometry, algorithm, selectedLabel, eps = 
 /**
  * Runs DBSCAN in backend FastAPI.
  * 
- * @param {Array<Array<number>>} points   - matriz NxD dos pontos
- * @param {Object} params                 - parâmetros opcionais do DBSCAN
+ * @param {Array<Array<number>>} points   - point matrix NxD
+ * @param {Object} params                 - DBSCAN parameters
  * @returns {Promise<Object>}             - clusters, noise, params
  */
 async function runDBSCAN(points, params = {}) {
@@ -113,16 +124,34 @@ async function runDBSCAN(points, params = {}) {
     p: params.p ?? null,
     n_jobs: params.n_jobs ?? null
   };
+  return await requestClusteringAPI('dbscan', body);
+}
 
-  const response = await fetch("http://localhost:8000/dbscan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
+/**
+ * Runs Ball-Query in backend FastAPI.
+ * 
+ * @param {Array<Array<number>>} points   - point matrix NxD
+ * @param {Object} params                 - Ball-Query parameters
+ * @returns {Promise<Object>}             - clusters, noise, params
+ */
+async function runBallQuery(points, params = {}) {
+  const body = {
+    data: points,
+    radius: params.radius ?? 0.5
+  };
+  return await requestClusteringAPI('ballquery', body);
+}
 
-  if (!response.ok) {
-    throw new Error(`Erro no DBSCAN: ${response.statusText}`);
-  }
+async function requestClusteringAPI(algorithm, body) {
+    const response = await fetch(`http://localhost:8000/${algorithm}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
 
-  return await response.json();
+    if (!response.ok) {
+        throw new Error(`Erro no DBSCAN: ${response.statusText}`);
+    }
+
+    return await response.json();
 }

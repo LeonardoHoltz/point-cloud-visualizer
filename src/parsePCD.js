@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import configData from '../config/conf.json' assert { type: 'json' };
 
 const fields_translation = {
 	"confidences": "semantic_pred_confs",
@@ -105,7 +106,7 @@ export async function parsePCD(url) {
 	// Visibility attribute to hide specific points
 	if (semantic_pred.length) {
 		for (let i = 0; i < semantic_pred.length; i++) {
-			if (labelsToHide.includes(semantic_pred[i])) {
+			if (configData.non_clustered_classes.includes(semantic_pred[i])) {
 				labelsToHideVisibility.push(0);
 			}
 			else
