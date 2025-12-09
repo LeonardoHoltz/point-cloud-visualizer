@@ -20,7 +20,7 @@ export async function loadPCD(url, options = {}) {
     console.log("Parsing %s", url)
     const geometry = await parsePCD(url);
     console.log("Parsing complete")
-    applyColorMode(geometry, colorBy, colormap);
+    await applyColorMode(geometry, colorBy, colormap);
     console.log("Colors applied")
     
     const material = new THREE.ShaderMaterial({
@@ -41,8 +41,8 @@ export async function loadPCD(url, options = {}) {
     console.log("Point Cloud object created")
 
     // Update methods
-    cloud.recolor = (colorByNew, colormapNew) => {
-        applyColorMode(cloud.geometry, colorByNew, colormapNew);
+    cloud.recolor = async (colorByNew, colormapNew) => {
+        await applyColorMode(cloud.geometry, colorByNew, colormapNew);
     };
 
     cloud.changeSize = (newSize) => {

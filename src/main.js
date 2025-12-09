@@ -33,17 +33,18 @@ const options = {
     clustering_mode: false,
     label_select: configData.classes[0],
     algorithm: 'DBSCAN',
-    apply_clustering: async function() {
-        if (this.clustering_mode) {
-            await pointCloud.applyClustering(this.algorithm, configData.classes.indexOf(this.label_select), this.algorithm_parameters);
-            console.log("finish clustering");
-            render();
-        }
-    },
     reset_clustering: function() {
         if (this.clustering_mode) {
             pointCloud.prepareClustering(false, configData.classes.indexOf(this.label_select));
             pointCloud.prepareClustering(true, configData.classes.indexOf(this.label_select));
+            render();
+        }
+    },
+    apply_clustering: async function() {
+        if (this.clustering_mode) {
+            this.reset_clustering();
+            await pointCloud.applyClustering(this.algorithm, configData.classes.indexOf(this.label_select), this.algorithm_parameters);
+            console.log("finish clustering");
             render();
         }
     },

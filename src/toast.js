@@ -1,3 +1,4 @@
+
 export function showToast(message, duration = 3000) {
   const container = document.getElementById("toast-container");
 
@@ -6,6 +7,7 @@ export function showToast(message, duration = 3000) {
   toast.innerText = message;
 
   container.appendChild(toast);
+  toast.offsetHeight;
 
   // animação de entrada
   requestAnimationFrame(() => {
@@ -17,5 +19,4 @@ export function showToast(message, duration = 3000) {
     toast.classList.remove("show");
     toast.addEventListener("transitionend", () => toast.remove());
   }, duration);
-  console.log("mostrei")
 }

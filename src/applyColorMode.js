@@ -1,12 +1,13 @@
 import * as THREE from "three";
 import * as d3 from "d3-scale-chromatic";
+import { computeDensityRadiusGrid } from "./density.js";
 import configData from '../config/conf.json' assert { type: 'json' };
 
 /**
  * Atualiza o atributo 'color' da geometria com base em um campo e colormap.
  * Usa dados armazenados em geometry.userData.raw
  */
-export function applyColorMode(geometry, colorBy = "rgb", colormap = "Category10") {
+export async function applyColorMode(geometry, colorBy = "rgb", colormap = "Category10") {
     const raw = geometry.userData.raw || {};
     const colors = [];
 
@@ -26,7 +27,7 @@ export function applyColorMode(geometry, colorBy = "rgb", colormap = "Category10
         turbo: d3.interpolateTurbo,
     };
 
-    // → RGB direto
+    // → RGB
     if (colorBy === "rgb" && raw.rgbs?.length) {
         geometry.setAttribute("color", new THREE.Float32BufferAttribute(raw.rgbs, 3));
     }
@@ -89,7 +90,22 @@ export function applyColorMode(geometry, colorBy = "rgb", colormap = "Category10
         geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     }
 
-    // → fallback (cinza)
+    else if (colorBy === "density") {
+        const densities = await computeDensityRadiusGrid(geometry.getAttribute("position").array, 0.05, 1)
+        const minI = 0.0
+        const maxI = densities.reduce((acc, cur) => Math.max(acc, cur), -Infinity);
+        const cmap = continuousSchemes[colormap] || d3.interpolateViridis;
+
+        for (const intensity of densities) {
+            const norm = (intensity - minI) / (maxI - minI + 1e-8);
+            const c = new THREE.Color(cmap(norm));
+            colors.push(c.r, c.g, c.b);
+        }
+
+        geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    }
+
+    // fallback (gray)
     else {
         const neutral = new THREE.Color(0.7, 0.7, 0.7);
         const n = geometry.getAttribute("position").count;

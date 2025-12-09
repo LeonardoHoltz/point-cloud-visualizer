@@ -30,9 +30,9 @@ export function initGUI(pointCloud, options) {
     });
 
     // How the Point Cloud should be colored
-    cloudGeneral.add(options, 'colorBy', ['rgb', 'semantic_gt', 'semantic_pred', 'confidences'])
+    cloudGeneral.add(options, 'colorBy', ['rgb', 'semantic_gt', 'semantic_pred', 'confidences', 'density'])
         .name('Color by')
-        .onChange(() => {
+        .onChange(async () => {
             pointCloud.recolor(options.colorBy, options.colormap);
             if (options.clustering_mode)
                 pointCloud.prepareClustering(true, configData.classes.indexOf(options.label_select));
@@ -42,8 +42,9 @@ export function initGUI(pointCloud, options) {
     // When not using rgb, which type of colormap to use
     cloudGeneral.add(options, 'colormap', ['Category10', 'Set3', 'Paired', 'viridis', 'plasma'])
         .name('Colormap')
-        .onChange(() => {
-            buildLegend(options.colormap_mapping[options.colormap]);
+        .onChange(async () => {
+            if (['Category10', 'Set3', 'Paired'].includes(options.colormap))
+                buildLegend(options.colormap_mapping[options.colormap]);
             pointCloud.recolor(options.colorBy, options.colormap);
             if (options.clustering_mode)
                 pointCloud.prepareClustering(true, configData.classes.indexOf(options.label_select));
