@@ -17,7 +17,7 @@ How to run:
 ```bash
 # In the root of the repo
 # run this to make python dbscan available for the application:
-uvicorn src.api.dbscan:app --reload
+uvicorn src.api.router:app --reload
 
 # In another terminal, run the application:
 npm run dev

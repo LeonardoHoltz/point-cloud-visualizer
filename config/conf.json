@@ -1,14 +1,18 @@
 {
     "input": {
-        "main_pc": "../data/placeholder.pcd",
-        "centroid_pc": "../data/placeholder_centroids_pred.pcd"
+        "main_pc": "../data/placeholder.pcd"
     },
-    "legend": [
+    "classes": [
+        "name0",
         "name1",
         "name2",
         "name3",
         "name4",
-        "name5",
-        "name6"
+        "name5"
+    ],
+    "non_clustered_classes": [
+        0,
+        1,
+        2
     ]
 }

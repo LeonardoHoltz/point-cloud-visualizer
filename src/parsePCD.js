@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import configData from '../config/conf.json' assert { type: 'json' };
 
 const fields_translation = {
 	"confidences": "semantic_pred_confs",
@@ -30,6 +31,8 @@ export async function parsePCD(url) {
 
 	const geometry = new THREE.BufferGeometry();
 	const positions = [];
+	const offsets = [];
+	const pred_centroid = [];
 	const normals = [];
 	const confidences = [];
 	const semantic_pred = [];
@@ -44,6 +47,16 @@ export async function parsePCD(url) {
 
 		// positions
 		positions.push(v[fieldIndices.x], v[fieldIndices.y], v[fieldIndices.z]);
+
+		// offsets
+		offsets.push(v[fieldIndices.offs_pred_x], v[fieldIndices.offs_pred_y], v[fieldIndices.offs_pred_z]);
+
+		// predicted centroids
+		pred_centroid.push(
+			v[fieldIndices.x] + v[fieldIndices.offs_pred_x],
+			v[fieldIndices.y] + v[fieldIndices.offs_pred_y],
+			v[fieldIndices.z] + v[fieldIndices.offs_pred_z],
+		)
 
 		// Normals
 		if ("normal_x" in fieldIndices) {
@@ -93,7 +106,7 @@ export async function parsePCD(url) {
 	// Visibility attribute to hide specific points
 	if (semantic_pred.length) {
 		for (let i = 0; i < semantic_pred.length; i++) {
-			if (labelsToHide.includes(semantic_pred[i])) {
+			if (configData.non_clustered_classes.includes(semantic_pred[i])) {
 				labelsToHideVisibility.push(0);
 			}
 			else
@@ -103,6 +116,8 @@ export async function parsePCD(url) {
 
 	// Uses the geometry to hold the data
 	geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+	geometry.setAttribute("offset", new THREE.Float32BufferAttribute(offsets, 3));
+	geometry.setAttribute("pred_centroid", new THREE.Float32BufferAttribute(pred_centroid, 3));
 	if (normals.length) geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
 	if (rgbs.length) geometry.setAttribute("rgb", new THREE.Float32BufferAttribute(rgbs, 3));
 	if (confidences.length) geometry.setAttribute("confidences", new THREE.Float32BufferAttribute(confidences, 1));

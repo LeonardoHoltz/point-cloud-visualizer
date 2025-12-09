@@ -1,5 +1,7 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { render } from "./rendering.js";
+import configData from '../config/conf.json' assert { type: 'json' };
+import { buildLegend } from "./legend.js";
 
 import './styles/gui.css';
 
@@ -8,7 +10,7 @@ import './styles/gui.css';
  * @param {THREE.Points} cloud - nuvem de pontos
  * @param {object} options - { colorBy, colormap, pointSize, labelsVisibility }
  */
-export function initGUI(main_cloud, offset_cloud, options) {
+export function initGUI(pointCloud, options) {
     const gui = new GUI(
         {
             title: "Point Cloud",
@@ -16,96 +18,99 @@ export function initGUI(main_cloud, offset_cloud, options) {
         }
     );
     gui.domElement.classList.add('pc-gui'); // Uses gui.css
-
-    // --- Section: Visualization ---
-    const visFolder = gui.addFolder('Visualization options');
-    visFolder.open();
-
-    // Show/Hide Point Cloud
-    visFolder.add(options, 'show_main_pc').name('Show Main Point Cloud').onChange((value) => {
-        main_cloud.visible = value;
-        render();
-    });
-
-    // How the Point Cloud should be colored
-    visFolder.add(options, 'colorBy', ['rgb', 'semantic_gt', 'semantic_pred', 'confidences'])
-        .name('Color by')
-        .onChange(() => {
-            main_cloud.recolor(options.colorBy, options.colormap);
-            render();
-        });
     
-    // When not using rgb, which type of colormap to use
-    visFolder.add(options, 'colormap', ['Category10', 'Set3', 'Paired', 'viridis', 'plasma'])
-        .name('Colormap')
-        .onChange(() => {
-            main_cloud.recolor(options.colorBy, options.colormap);
-            render();
-        });
-
-    // Size of the points
-    visFolder.add(options, 'pointSize', 1, 10, 0.1)
-        .name('Point Size')
-        .onChange(() => {
-            main_cloud.changeSize(options.pointSize);
-            render();
-        });
-    
-    // --- Section: Offset Manipulation ---
-    const offsetFolder = gui.addFolder('Offset options');
-    offsetFolder.open();
+    // --- Section: Cloud common visualization options ---
+    const cloudGeneral = gui.addFolder('Offset options');
+    cloudGeneral.open();
     
     // Show/Hide Offset Point Cloud
-    offsetFolder.add(options, 'show_offset_pc').name('Show Offset Point Cloud').onChange((value) => {
-        offset_cloud.visible = value;
+    cloudGeneral.add(options, 'show_pc').name('Show Point Cloud').onChange((value) => {
+        pointCloud.visible = value;
         render();
     });
 
     // How the Point Cloud should be colored
-    offsetFolder.add(options, 'colorBy', ['rgb', 'semantic_gt', 'semantic_pred', 'confidences'])
+    cloudGeneral.add(options, 'colorBy', ['rgb', 'semantic_gt', 'semantic_pred', 'confidences', 'density'])
         .name('Color by')
-        .onChange(() => {
-            offset_cloud.recolor(options.colorBy, options.colormap);
+        .onChange(async () => {
+            pointCloud.recolor(options.colorBy, options.colormap);
+            if (options.clustering_mode)
+                pointCloud.prepareClustering(true, configData.classes.indexOf(options.label_select));
             render();
         });
     
     // When not using rgb, which type of colormap to use
-    offsetFolder.add(options, 'colormap', ['Category10', 'Set3', 'Paired', 'viridis', 'plasma'])
+    cloudGeneral.add(options, 'colormap', ['Category10', 'Set3', 'Paired', 'viridis', 'plasma'])
         .name('Colormap')
-        .onChange(() => {
-            offset_cloud.recolor(options.colorBy, options.colormap);
+        .onChange(async () => {
+            if (['Category10', 'Set3', 'Paired'].includes(options.colormap))
+                buildLegend(options.colormap_mapping[options.colormap]);
+            pointCloud.recolor(options.colorBy, options.colormap);
+            if (options.clustering_mode)
+                pointCloud.prepareClustering(true, configData.classes.indexOf(options.label_select));
             render();
         });
 
     // Size of the points
-    offsetFolder.add(options, 'pointSize', 1, 10, 0.1)
+    cloudGeneral.add(options, 'pointSize', 1, 10, 0.1)
         .name('Point Size')
         .onChange(() => {
-            offset_cloud.changeSize(options.pointSize);
+            pointCloud.changeSize(options.pointSize);
             render();
         });
 
     // Slider to check offset progression compared with main PC
-    offsetFolder.add(options, 'offset_pred_slider', 0, 1).name('Offset progression').onChange((value) => {
-        offset_cloud.applyOffset(value);
+    cloudGeneral.add(options, 'offset_pred_slider', 0, 1).name('Offset progression').onChange((value) => {
+        pointCloud.applyOffset(value);
         render();
     });
 
     // Unimportant Labels visibility
-    offsetFolder.add(options, 'hide_labels').name('Hide non-clustered labels').onChange((value) => {
-        offset_cloud.updateLabelVisibility(value);
+    cloudGeneral.add(options, 'hide_labels').name('Hide non-equipment objects').onChange((value) => {
+        pointCloud.updateLabelVisibility(value);
         render();
     });
 
     // --- Section: Clustering Mode ---
-    offsetFolder.add(options, 'clustering_mode').name('Clustering mode').onChange((value) => {
-        offset_cloud.prepareClustering(value, options.label_select);
+    const clusteringFolder = gui.addFolder('Clustering options');
+    clusteringFolder.add(options, 'clustering_mode').name('Clustering mode').onChange((value) => {
+        pointCloud.prepareClustering(value, configData.classes.indexOf(options.label_select));
         render();
     });
-    offsetFolder.add(options, 'label_select', [0, 1, 2, 3, 4, 5]).name('Select label');
-    offsetFolder.add(options, 'algorithm', ['DBSCAN', 'KNN']).name('Clustering Algorithm');
-    offsetFolder.add(options, 'apply_clustering').name('Apply Clustering');
+    clusteringFolder.add(options, 'label_select', configData.classes).name('Select label').onChange((value) => {
+        options.reset_clustering();
+    });
+    const algorithm_options = ['DBSCAN', 'Ball-Query'];
+    let algorithmParameters;
+    let parametersControllers = [];
+    const algorithm = clusteringFolder.add(options, 'algorithm', algorithm_options).name('Clustering Algorithm').onChange((value) => {
+        while(parametersControllers.length > 0) {
+            const controller = parametersControllers.pop();
+            controller.destroy();
+        };
+        switch(value) {
+            case 'DBSCAN':
+                algorithmParameters.title(options.algorithm_parameters.dbscan.title);
+                parametersControllers.push(
+                    algorithmParameters.add(options.algorithm_parameters.dbscan, 'eps').name('eps (distance)')
+                );
+                parametersControllers.push(
+                    algorithmParameters.add(options.algorithm_parameters.dbscan, 'min_pts').name('Min. Points belonging to cluster')
+                );
+                break;
+            case 'Ball-Query':
+                algorithmParameters.title(options.algorithm_parameters.ball_query.title);
+                parametersControllers.push(
+                    algorithmParameters.add(options.algorithm_parameters.ball_query, 'radius').name('Radius')
+                );
+                break;
+        };
+    });
+    algorithmParameters = clusteringFolder.addFolder('placeholder');
+    algorithm.setValue(algorithm_options[0]); // Force the onchange in the first time
 
+    clusteringFolder.add(options, 'apply_clustering').name('Apply Clustering');
+    clusteringFolder.add(options, 'reset_clustering').name('Reset Clustering');
 
     return gui;
 }
