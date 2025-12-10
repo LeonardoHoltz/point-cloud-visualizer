@@ -1,0 +1,22 @@
+services:
+  frontend:
+    image: pcv-frontend:latest
+    build:
+      context: ..
+      dockerfile: ./docker/frontend/Dockerfile
+    pull_policy: build
+    depends_on:
+      - backend
+    ports:
+      - 8080:5173
+    volumes:
+      - ../data:/app/data
+
+  backend:
+    image: pcv-backend:latest
+    build:
+      context: ..
+      dockerfile: ./docker/backend/Dockerfile
+    pull_policy: build
+    ports:
+      - 8001:8001

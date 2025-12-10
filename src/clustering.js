@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import configData from '../config/conf.json' assert { type: 'json' };
 import { showToast } from "./toast.js";
 
 export function prepareClustering(geometry, isClusteringMode, selectedLabel) {
@@ -145,7 +146,7 @@ async function runBallQuery(points, params = {}) {
 }
 
 async function requestClusteringAPI(algorithm, body) {
-    const response = await fetch(`http://localhost:8000/${algorithm}`, {
+    const response = await fetch(`http://${configData.clustering_api_ip}:8001/${algorithm}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)

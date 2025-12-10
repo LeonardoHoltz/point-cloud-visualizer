@@ -1,4 +1,5 @@
 {
+    "clustering_api_ip": "clustering_api_ip",
     "input": {
         "main_pc": "../data/placeholder.pcd"
     },
