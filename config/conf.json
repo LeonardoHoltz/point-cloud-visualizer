@@ -1,10 +1,10 @@
 {
     "clustering_api": {
-        "host": "clustering_api_ip",
+        "host": "localhost",
         "port": "8001"
     },
     "input": {
-        "main_pc": "../data/placeholder.pcd"
+        "main_pc": "../data/ascii_NORA_E.pcd"
     },
     "classes": [
         "class0",
