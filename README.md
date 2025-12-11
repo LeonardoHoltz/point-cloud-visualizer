@@ -1,24 +1,32 @@
 Tool to visualize algorithms in Point Cloud
 
-Requirements:
+# Requirements:
 
-- Nodejs v22.x
-- npm v10.9.3
+- Nodejs v24.x
 - [pixi](https://pixi.sh/latest/)
 
-How to install:
+# How to install:
 ```bash
 # In the root of the repository
 npm install
 pixi install
 ```
 
-How to run:
+# How to run:
 ```bash
-# In the root of the repo
-# run this to make python dbscan available for the application:
+# Backend: In the root of the repo, inside the pixi environment
 uvicorn src.api.router:app --reload
 
 # In another terminal, run the application:
 npm run dev
+```
+# Troubleshoots
+## How can I make available my application in local network when using WSL
+You need to expose the two used ports to Windows through these commands:
+```bash
+# Frontend
+netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=8080 connectaddress=<YOUR_WSL_ADDRESS>
+
+# Backend
+netsh interface portproxy add v4tov4 listenport=8001 listenaddress=0.0.0.0 connectport=8001 connectaddress=<YOUR_WSL_ADDRESS>
 ```
