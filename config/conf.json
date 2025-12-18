@@ -1,15 +1,18 @@
 {
-    "clustering_api_ip": "clustering_api_ip",
+    "clustering_api": {
+        "host": "clustering_api_ip",
+        "port": "8001"
+    },
     "input": {
         "main_pc": "../data/placeholder.pcd"
     },
     "classes": [
-        "name0",
-        "name1",
-        "name2",
-        "name3",
-        "name4",
-        "name5"
+        "class0",
+        "class1",
+        "class2",
+        "class3",
+        "class4",
+        "class5"
     ],
     "non_clustered_classes": [
         0,

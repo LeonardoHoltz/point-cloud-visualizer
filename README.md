@@ -15,7 +15,8 @@ pixi install
 # How to run:
 ```bash
 # Backend: In the root of the repo, inside the pixi environment
-uvicorn src.api.router:app --reload
+# To make available in local network, use --host with your local ip
+uvicorn src.api.router:app --reload --port 8001
 
 # In another terminal, run the application:
 npm run dev

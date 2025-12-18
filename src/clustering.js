@@ -75,7 +75,7 @@ export async function applyClustering(geometry, algorithm, selectedLabel, parame
         case 'DBSCAN':
             res = await runDBSCAN(pointsToCluster, {
                 eps: parameters.dbscan.eps,
-                min_samples: parameters.dbscan.minPts,
+                min_samples: parameters.dbscan.min_pts,
                 metric: "euclidean",
             });
             clusters = res.clusters;
@@ -146,7 +146,7 @@ async function runBallQuery(points, params = {}) {
 }
 
 async function requestClusteringAPI(algorithm, body) {
-    const response = await fetch(`http://${configData.clustering_api_ip}:8001/${algorithm}`, {
+    const response = await fetch(`http://${configData.clustering_api.host}:${configData.clustering_api.port}/${algorithm}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
