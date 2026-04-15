@@ -4,7 +4,7 @@
         "port": "8001"
     },
     "input": {
-        "main_pc": "../data/ascii_NORA_E.pcd"
+        "main_pc": "../data/point_cloud_example.pcd"
     },
     "classes": [
         "class0",
